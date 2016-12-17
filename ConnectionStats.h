@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <inttypes.h>
 #include <vector>
-
+#define USE_ADAPTIVE_SAMPLER
 #ifdef USE_ADAPTIVE_SAMPLER
 #include "AdaptiveSampler.h"
 #elif defined(USE_HISTOGRAM_SAMPLER)
