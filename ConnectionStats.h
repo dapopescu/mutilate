@@ -22,7 +22,7 @@ class ConnectionStats {
  public:
  ConnectionStats(bool _sampling = true) :
 #ifdef USE_ADAPTIVE_SAMPLER
-   get_sampler(100000), set_sampler(100000), op_sampler(100000),
+   get_sampler(1000000), set_sampler(1000000), op_sampler(1000000),
 #elif defined(USE_HISTOGRAM_SAMPLER)
    get_sampler(10000,1), set_sampler(10000,1), op_sampler(1000,1),
 #else
