@@ -622,10 +622,7 @@ int main(int argc, char **argv) {
       fprintf(file, "%-7s %7s %7s %7s %7s %7s %7s %7s %7s\n",
            "#type", "avg", "min", "1st", "5th", "10th",
            "90th", "95th", "99th");
-      stats.file_print_stats(file, "read", stats.get_sampler);
-      stats.file_print_stats(file, "update", stats.set_sampler);
-      stats.file_print_stats(file, "op_q", stats.op_sampler); 
-      
+     
       fprintf(file, "\nTotal QPS = %.1f (%d / %.1fs)\n",
            total / (stats.stop - stats.start),
            total, stats.stop - stats.start);
@@ -646,20 +643,9 @@ int main(int argc, char **argv) {
 
       fprintf(file, "\n");
 
-      fprintf(file, "GET\n");
-      for (auto i: stats.get_sampler.samples) {
-        fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
-      }
-
-      fprintf(file, "SET\n");
-      for (auto i: stats.set_sampler.samples) {
-        fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
-      }
-      
-      fprintf(file, "OP_Q\n");
-      for (auto i: stats.op_sampler.samples) {
-        fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
-      }
+      stats.file_print_stats(file, "read", stats.get_sampler);
+      stats.file_print_stats(file, "update", stats.set_sampler);
+      stats.file_print_stats(file, "op_q", stats.op_sampler);  
     }
   }
 
