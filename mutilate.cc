@@ -618,7 +618,45 @@ int main(int argc, char **argv) {
       if ((file = fopen(args.save_arg, "w")) == NULL)
         DIE("--save: failed to open %s: %s", args.save_arg, strerror(errno));
 
+      fprintf(file, "%-7s %7s %7s %7s %7s %7s %7s %7s %7s\n",
+           "#type", "avg", "min", "1st", "5th", "10th",
+           "90th", "95th", "99th");
+      stats.file_print_stats(file, "read", stats.get_sampler);
+      stats.file_print_stats(file, "update", stats.set_sampler);
+      stats.file_print_stats(file, "op_q", stats.op_sampler); 
+      
+      fprintf(file, "\nTotal QPS = %.1f (%d / %.1fs)\n",
+           total / (stats.stop - stats.start),
+           total, stats.stop - stats.start);
+      fprintf(file, "\n");
+
+      fprintf(file, "Misses = %" PRIu64 " (%.1f%%)\n", stats.get_misses,
+           (double) stats.get_misses/stats.gets*100);
+
+      fprintf(file, "Skipped TXs = %" PRIu64 " (%.1f%%)\n\n", stats.skips,
+           (double) stats.skips / total * 100);
+
+      fprintf(file, "RX %10" PRIu64 " bytes : %6.1f MB/s\n",
+           stats.rx_bytes,
+           (double) stats.rx_bytes / 1024 / 1024 / (stats.stop - stats.start));
+      fprintf(file, "TX %10" PRIu64 " bytes : %6.1f MB/s\n",
+           stats.tx_bytes,
+           (double) stats.tx_bytes / 1024 / 1024 / (stats.stop - stats.start));
+
+      fprintf(file, "\n");
+
+      fprintf(file, "GET\n");
       for (auto i: stats.get_sampler.samples) {
+        fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
+      }
+
+      fprintf(file, "SET\n");
+      for (auto i: stats.set_sampler.samples) {
+        fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
+      }
+      
+      fprintf(file, "OP_Q\n");
+      for (auto i: stats.op_sampler.samples) {
         fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
       }
     }
