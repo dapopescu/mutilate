@@ -22,7 +22,7 @@ class ConnectionStats {
  public:
  ConnectionStats(bool _sampling = true) :
 #ifdef USE_ADAPTIVE_SAMPLER
-   get_sampler(100000), set_sampler(100000), op_sampler(100000),
+   get_sampler(1000000), set_sampler(1000000), op_sampler(1000000),
 #elif defined(USE_HISTOGRAM_SAMPLER)
    get_sampler(10000,1), set_sampler(10000,1), op_sampler(1000,1),
 #else
@@ -124,7 +124,7 @@ class ConnectionStats {
 
   static void print_header() {
     printf("%-7s %7s %7s %7s %7s %7s %7s %7s %7s\n",
-           "#type", "avg", "std", "min", /*"1st",*/ "5th", "10th",
+           "#type", "avg", "min", "1st", "5th", "10th",
            "90th", "95th", "99th");
   }
 
@@ -153,6 +153,31 @@ class ConnectionStats {
     if (newline) printf("\n");
   }
 
+  void file_print_stats(FILE *f, const char *tag, 
+			AdaptiveSampler<Operation> &sampler,bool newline = true) {
+    vector<double> copy;
+
+    for (auto i: sampler.samples) copy.push_back(i.time());
+    size_t l = copy.size();
+
+    if (l == 0) {
+      fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+             tag, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      if (newline) fprintf(f, "\n");
+      return;
+    }
+
+    sort(copy.begin(), copy.end());
+
+    fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+           tag, std::accumulate(copy.begin(), copy.end(), 0.0) / l,
+           copy[0], copy[(l*1) / 100], copy[(l*5) / 100], copy[(l*10) / 100],
+           copy[(l*90) / 100], copy[(l*95) / 100], copy[(l*99) / 100]
+           );
+    if (newline) fprintf(f, "\n");
+ 
+  }
+
   void print_stats(const char *tag, AdaptiveSampler<double> &sampler,
                    bool newline = true) {
     vector<double> copy;
@@ -171,6 +196,32 @@ class ConnectionStats {
            );
     if (newline) printf("\n");
   }
+
+  void file_print_stats(FILE *f, const char *tag, 
+			AdaptiveSampler<double> &sampler,bool newline = true) {
+    vector<double> copy;
+
+    for (auto i: sampler.samples) copy.push_back(i);
+    size_t l = copy.size();
+
+    if (l == 0) { 
+	fprintf(f, "%-7s 0", tag); 
+	if (newline) fprintf(f, "\n"); 
+	return; 
+    }
+
+    sort(copy.begin(), copy.end());
+
+    fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+           tag, std::accumulate(copy.begin(), copy.end(), 0.0) / l,
+           copy[0], copy[(l*1) / 100], copy[(l*5) / 100], copy[(l*10) / 100],
+           copy[(l*90) / 100], copy[(l*95) / 100], copy[(l*99) / 100]
+           );
+ 
+   if (newline) fprintf(f, "\n"); 
+  }
+
+ 
 #elif defined(USE_HISTOGRAM_SAMPLER)
   void print_stats(const char *tag, HistogramSampler &sampler,
                    bool newline = true) {
@@ -189,6 +240,24 @@ class ConnectionStats {
 
     if (newline) printf("\n");
   }
+  void file_print_stats(FILE *f, const char *tag, HistogramSampler &sampler,
+                   bool newline = true) {
+    if (sampler.total() == 0) {
+      fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+             tag, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      if (newline) fprintf(f, "\n");
+      return;
+    }
+
+    fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+           tag, sampler.average(),
+           sampler.get_nth(0), sampler.get_nth(1), sampler.get_nth(5),
+           sampler.get_nth(10), sampler.get_nth(90),
+           sampler.get_nth(95), sampler.get_nth(99));
+
+    if (newline) fprintf(f, "\n");
+  }
+
 #else
   void print_stats(const char *tag, LogHistogramSampler &sampler,
                    bool newline = true) {
@@ -207,6 +276,24 @@ class ConnectionStats {
 
     if (newline) printf("\n");
   }
+  void file_print_stats(FILE *f, const char *tag, LogHistogramSampler &sampler,
+                   bool newline = true) {
+    if (sampler.total() == 0) {
+      fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+             tag, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      if (newline) fprintf(f, "\n");
+      return;
+    }
+
+    fprintf(f, "%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+           tag, sampler.average(), sampler.stddev(),
+           sampler.get_nth(0), /*sampler.get_nth(1),*/ sampler.get_nth(5),
+           sampler.get_nth(10), sampler.get_nth(90),
+           sampler.get_nth(95), sampler.get_nth(99));
+
+    if (newline) fprintf(f, "\n");
+  }
+
 #endif
 };
 
