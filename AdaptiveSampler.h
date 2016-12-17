@@ -41,7 +41,7 @@ public:
       samples.push_back(s);
 
     // Throw out half of the samples, double sample_rate.
-    /*if (samples.size() >= max_samples) {
+    if (samples.size() >= max_samples) {
       sample_rate *= 2;
 
       std::vector<T> half_samples;
@@ -49,7 +49,7 @@ public:
         if (drand48() > .5) half_samples.push_back(samples[i]);
       }
       samples = half_samples;
-    }*/
+    }
   }
 
   void save_samples(const char* type, const char* filename) {
