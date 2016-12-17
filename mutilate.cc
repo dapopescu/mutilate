@@ -26,6 +26,7 @@
 #include <zmq.hpp>
 #endif
 
+#define USE_ADAPTIVE_SAMPLER
 #include "AdaptiveSampler.h"
 #include "AgentStats.h"
 #ifndef HAVE_PTHREAD_BARRIER_INIT
