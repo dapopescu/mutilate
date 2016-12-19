@@ -644,16 +644,15 @@ int main(int argc, char **argv) {
       fprintf(file, "TX %10" PRIu64 " bytes : %6.1f MB/s\n",
            stats.tx_bytes,
            (double) stats.tx_bytes / 1024 / 1024 / (stats.stop - stats.start));
-     fprintf(file, "\n");
+      fprintf(file, "\n");
 
+      fprintf(file, "GET\n");
       for (auto i: stats.get_sampler.samples) {
         fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
       }
+      fprintf(file, "SET\n");
       for (auto i: stats.set_sampler.samples) {
         fprintf(file, "%f %f\n", i.start_time - boot_time, i.time());
-      }
-      for (auto i: stats.op_sampler.samples) {
-        fprintf(file, "%f %f\n", i - boot_time, i);
       }
     }
   }
